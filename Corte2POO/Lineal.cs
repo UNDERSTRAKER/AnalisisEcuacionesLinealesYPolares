@@ -1,8 +1,8 @@
 ﻿namespace Corte2POO
 {
     /* 
-     * Nombre 1:  AQUI VA A IR EL NOMBRE COMPLETO DEL PRIMER MIEMBRO DEL GRUPO
-     * Nombre 2:  AQUI VA A IR EL NOMBRE COMPLETO DEL SEGUNDO MIEMBRO DEL GRUPO
+     * Nombre 1:  LUIS FELIPE PADILLA ARENAS
+     * Nombre 2:  DANIEL FELIPE CELIS
      * */
 
     internal class Lineal: ClaseMadre {
