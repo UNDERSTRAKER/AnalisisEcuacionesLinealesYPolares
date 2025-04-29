@@ -7,165 +7,144 @@ namespace Corte2POO
      * Nombre 1:  LUIS FELIPE PADILLA ARENAS
      * Nombre 2:  DANIEL FELIPE CELIS
      * */
-    class Polar : ClaseMadre
-    {
-        private double valA, valB;
-        private double Xminimo, Xmaximo, paso;
 
-        private List<double> simTetha = new();
-        private List<double> pCortes = new();
-        private List<double> Yvalores = new();
-
-        // Ingresa los coeficientes para ecuación polar: r = a * sin(b * θ * π/180)
-        public void Coeficientes(double valA, double valB)
+        class Polar : ClaseMadre
         {
-            this.valA = valA;
-            this.valB = valB;
-        }
+            private double coefA, coefB;
+            private double thetaMin, thetaMax, incremento;
 
-        private double ValorR(double Theta)
-        {
-            double anguloConvert = valB * Theta;
-            double radianes = anguloConvert * Math.PI / 180;
-            double resultado = valA * Math.Sin(radianes);
-            return resultado;
-        }
+            private List<(double Theta, double R, double X, double Y)> puntos = new(); // Almacena todos los puntos calculados
+            private List<double> puntosDeCorte = new(); // Almacena los puntos de corte
 
-        private double ValorX(double R, double Theta)
-        {
-            double radianes = Theta * Math.PI / 180;
-            double x = R * Math.Cos(radianes);
-            return x;
-        }
-
-        private double ValorY(double R, double Theta)
-        {
-            double radianes = Theta * Math.PI / 180;
-            double y = R * Math.Sin(radianes);
-            return y;
-        }
-
-        public override void Rango(double Minimo, double Maximo)
-        {
-            Xminimo = Minimo;
-            Xmaximo = Maximo;
-            RecalcularVal();
-        }
-
-        public override void setPaso(double Paso)
-        {
-            paso = Paso;
-            RecalcularVal();
-        }
-
-        private void RecalcularVal()
-        {
-            simTetha.Clear();
-            pCortes.Clear();
-            Yvalores.Clear();
-
-            for (double Theta = Xminimo; Theta <= Xmaximo; Theta += paso)
+            // Configura los coeficientes para la ecuación polar: r = a * sin(b * θ * π/180)
+            public void Coeficientes(double a, double b)
             {
-                double r = ValorR(Theta);
-                double y = ValorY(r, Theta);
-
-                simTetha.Add(Theta);
-                Yvalores.Add(y);
+                coefA = a;
+                coefB = b;
             }
 
-            for (int i = 1; i < Yvalores.Count; i++)
+            private double CalcularR(double theta)
             {
-                if (Yvalores[i - 1] * Yvalores[i] < 0) // Cambio de signo → Punto de corte
+                return coefA * Math.Sin(coefB * theta * Math.PI / 180);
+            }
+
+            private (double X, double Y) CalcularCoordenadas(double r, double theta)
+            {
+                double radianes = theta * Math.PI / 180;
+                double x = r * Math.Cos(radianes);
+                double y = r * Math.Sin(radianes);
+                return (x, y);
+            }
+
+            public override void Rango(double minimo, double maximo)
+            {
+                thetaMin = minimo;
+                thetaMax = maximo;
+            }
+
+            public override void setPaso(double paso)
+            {
+                incremento = paso;
+            }
+
+            // Genera todos los puntos y calcula los puntos de corte
+            public void GenerarPuntos()
+            {
+                puntos.Clear();
+                puntosDeCorte.Clear();
+
+                for (double theta = thetaMin; theta <= thetaMax; theta += incremento)
                 {
-                    double corte = (simTetha[i - 1] + simTetha[i]) / 2.0;
-                    pCortes.Add(corte);
+                    double r = CalcularR(theta);
+                    var (x, y) = CalcularCoordenadas(r, theta);
+                    puntos.Add((theta, r, x, y));
+                }
+
+                // Detectar puntos de corte (cambio de signo en Y)
+                for (int i = 1; i < puntos.Count; i++)
+                {
+                    if (puntos[i - 1].Y * puntos[i].Y < 0) // Cambio de signo
+                    {
+                        double corte = (puntos[i - 1].Theta + puntos[i].Theta) / 2.0;
+                        puntosDeCorte.Add(corte);
+                    }
                 }
             }
-        }
 
-        public override int TotalPuntosCorte()
-        {
-            return pCortes.Count;
-        }
-
-        public override bool ExistePuntoCorte(int Punto)
-        {
-            return Punto > 0 && Punto <= pCortes.Count;
-        }
-
-        public override double ValorPuntoCorte(int Punto)
-        {
-            if (ExistePuntoCorte(Punto))
+            public override int TotalPuntosCorte()
             {
-                return pCortes[Punto - 1];
+                return puntosDeCorte.Count;
             }
-            else
+
+            public override bool ExistePuntoCorte(int punto)
             {
-                // Cambiado para uniformizar comportamiento con la clase Lineal
+                return punto > 0 && punto <= puntosDeCorte.Count;
+            }
+
+            public override double ValorPuntoCorte(int punto)
+            {
+                if (ExistePuntoCorte(punto))
+                {
+                    return puntosDeCorte[punto - 1];
+                }
                 return double.NaN;
             }
-        }
 
-        public override double MaximoValorY()
-        {
-            if (Yvalores.Count == 0) return 0;
-
-            double max = Yvalores[0];
-            foreach (double y in Yvalores)
+            public override double MaximoValorY()
             {
-                if (y > max)
+                if (puntos.Count == 0) return 0;
+                double maxY = double.MinValue;
+                foreach (var punto in puntos)
                 {
-                    max = y;
+                    if (punto.Y > maxY)
+                    {
+                        maxY = punto.Y;
+                    }
                 }
+                return maxY;
             }
-            return max;
-        }
 
-        public override double MinimoValorY()
-        {
-            if (Yvalores.Count == 0) return 0;
-
-            double min = Yvalores[0];
-            foreach (double y in Yvalores)
+            public override double MinimoValorY()
             {
-                if (y < min)
+                if (puntos.Count == 0) return 0;
+                double minY = double.MaxValue;
+                foreach (var punto in puntos)
                 {
-                    min = y;
+                    if (punto.Y < minY)
+                    {
+                        minY = punto.Y;
+                    }
                 }
+                return minY;
             }
-            return min;
-        }
 
-        public double MaximoValorX()
-        {
-            double maxX = double.MinValue;
-            for (int i = 0; i < simTetha.Count; i++)
+            public double MaximoValorX()
             {
-                double theta = simTetha[i];   // Tomamos el ángulo real
-                double r = ValorR(theta);     // Calculamos el radio r de forma correcta
-                double x = ValorX(r, theta);  // Calculamos X correctamente
-                if (x > maxX)
+                if (puntos.Count == 0) return 0;
+                double maxX = double.MinValue;
+                foreach (var punto in puntos)
                 {
-                    maxX = x;
+                    if (punto.X > maxX)
+                    {
+                        maxX = punto.X;
+                    }
                 }
+                return maxX;
             }
-            return maxX;
-        }
 
-        public double MinimoValorX()
-        {
-            double minX = double.MaxValue;
-            for (int i = 0; i < simTetha.Count; i++)
+            public double MinimoValorX()
             {
-                double theta = simTetha[i];   // Tomamos el ángulo real
-                double r = ValorR(theta);     // Calculamos r correctamente
-                double x = ValorX(r, theta);  // Calculamos X correctamente
-                if (x < minX)
+                if (puntos.Count == 0) return 0;
+                double minX = double.MaxValue;
+                foreach (var punto in puntos)
                 {
-                    minX = x;
+                    if (punto.X < minX)
+                    {
+                        minX = punto.X;
+                    }
                 }
+                return minX;
             }
-            return minX;
         }
     }
-}
+

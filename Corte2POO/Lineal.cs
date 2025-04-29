@@ -1,175 +1,130 @@
-﻿
-using System;
-using System.Collections.Generic;
-
-namespace Corte2POO
+﻿namespace Corte2POO
 {
     /* 
      * Nombre 1:  LUIS FELIPE PADILLA ARENAS
      * Nombre 2:  DANIEL FELIPE CELIS
      * */
-    internal class Lineal : ClaseMadre
-    {
-        private double valA, valB, valC, valD, valE, valF, valG;
 
-        private double minimo, maximo, paso;
-
-        private List<double> valoresX = new();
-        private List<double> valoresY = new();
-        private List<double> puntosDeCorte = new();
-
-        public void Coeficientes(double valA, double valB, double valC, double valD, double valE, double valF, double valG)
+        internal class Lineal : ClaseMadre
         {
-            this.valA = valA;
-            this.valB = valB;
-            this.valC = valC;
-            this.valD = valD;
-            this.valE = valE;
-            this.valF = valF;
-            this.valG = valG;
-        }
+            private double[] coeficientes = new double[7]; // Almacena los coeficientes A-G
+            private double minimo, maximo, paso;
+            private (double X, double Y)[] puntos; // Array para almacenar los puntos calculados
 
-        private double ValorY(double ValorX)
-        {
-            double y = valA * Math.Pow(ValorX, 6)
-                     + valB * Math.Pow(ValorX, 5)
-                     + valC * Math.Pow(ValorX, 4)
-                     + valD * Math.Pow(ValorX, 3)
-                     + valE * Math.Pow(ValorX, 2)
-                     + valF * ValorX
-                     + valG;
-            return y;
-        }
-
-        public override void Rango(double Minimo, double Maximo)
-        {
-            minimo = Minimo;
-            maximo = Maximo;
-            RecalcularValores();
-        }
-
-        public override void setPaso(double Paso)
-        {
-            paso = Paso;
-            RecalcularValores();
-        }
-
-        private void RecalcularValores()
-        {
-            valoresX.Clear();
-            valoresY.Clear();
-            puntosDeCorte.Clear();
-
-            // Generar los valores de X e Y
-            for (double x = minimo; x <= maximo; x += paso)
+            public void Coeficientes(double valA, double valB, double valC, double valD, double valE, double valF, double valG)
             {
-                double y = ValorY(x);
-                valoresX.Add(x);
-                valoresY.Add(y);
+                coeficientes[0] = valA;
+                coeficientes[1] = valB;
+                coeficientes[2] = valC;
+                coeficientes[3] = valD;
+                coeficientes[4] = valE;
+                coeficientes[5] = valF;
+                coeficientes[6] = valG;
             }
 
-            // Detectar cambios de signo en Y para encontrar puntos de corte
-            for (int i = 1; i < valoresY.Count; i++)
+            private double CalcularY(double x)
             {
-                double yAnterior = valoresY[i - 1];
-                double yActual = valoresY[i];
+                return coeficientes[0] * Math.Pow(x, 6) +
+                       coeficientes[1] * Math.Pow(x, 5) +
+                       coeficientes[2] * Math.Pow(x, 4) +
+                       coeficientes[3] * Math.Pow(x, 3) +
+                       coeficientes[4] * Math.Pow(x, 2) +
+                       coeficientes[5] * x +
+                       coeficientes[6];
+            }
 
-                if (yAnterior * yActual < 0) // Cambio de signo detectado
+            public override void Rango(double Minimo, double Maximo)
+            {
+                minimo = Minimo;
+                maximo = Maximo;
+            }
+
+            public override void setPaso(double Paso)
+            {
+                paso = Paso;
+            }
+
+            public void GenerarPuntos()
+            {
+                int cantidadPuntos = (int)((maximo - minimo) / paso) + 1;
+                puntos = new (double X, double Y)[cantidadPuntos];
+
+                for (int i = 0; i < cantidadPuntos; i++)
                 {
-                    double corte = (valoresX[i - 1] + valoresX[i]) / 2.0;
-                    puntosDeCorte.Add(corte);
-                }
-            }
-        }
-
-        public override int TotalPuntosCorte()
-        {
-            return puntosDeCorte.Count;
-        }
-
-        public override bool ExistePuntoCorte(int Punto)
-        {
-            // Verifica que el punto de corte exista
-            return Punto >= 1 && Punto <= puntosDeCorte.Count;
-        }
-
-        public override double ValorPuntoCorte(int Punto)
-        {
-            if (ExistePuntoCorte(Punto))
-            {
-                return puntosDeCorte[Punto - 1];
-            }
-            else
-            {
-                return double.NaN; // Si no existe, devuelve NaN
-            }
-        }
-
-        public override double MaximoValorY()
-        {
-            if (valoresY.Count == 0) return 0;
-
-            double max = valoresY[0];
-            foreach (double y in valoresY)
-            {
-                if (y > max)
-                {
-                    max = y;
-                }
-            }
-            return max;
-        }
-
-        public override double MinimoValorY()
-        {
-            if (valoresY.Count == 0) return 0;
-
-            double min = valoresY[0];
-            foreach (double y in valoresY)
-            {
-                if (y < min)
-                {
-                    min = y;
-                }
-            }
-            return min;
-        }
-
-        public int CasosCalcularArea(double Xini, double Xfin)
-        {
-            double PasoInterno = (Xfin - Xini) / 100.0;
-            bool hayPositivos = false;
-            bool hayNegativos = false;
-
-            for (double x = Xini; x <= Xfin; x += PasoInterno)
-            {
-                double y = ValorY(x);
-                if (y > 0)
-                {
-                    hayPositivos = true;
-                }
-                if (y < 0)
-                {
-                    hayNegativos = true;
+                    double x = minimo + i * paso;
+                    puntos[i] = (x, CalcularY(x));
                 }
             }
 
-            if (hayPositivos && hayNegativos)
+            public override int TotalPuntosCorte()
             {
-                return 0; // Hay cortes
+                GenerarPuntos();
+                return puntos.Zip(puntos.Skip(1), (p1, p2) => p1.Y * p2.Y < 0).Count(cambio => cambio);
             }
-            else if (hayPositivos)
+
+            public override bool ExistePuntoCorte(int Punto)
             {
-                return 1; // Está arriba del eje X
+                GenerarPuntos();
+                int contador = 0;
+
+                for (int i = 1; i < puntos.Length; i++)
+                {
+                    if (puntos[i - 1].Y * puntos[i].Y < 0)
+                    {
+                        contador++;
+                        if (contador == Punto)
+                            return true;
+                    }
+                }
+                return false;
             }
-            else if (hayNegativos)
+
+            public override double ValorPuntoCorte(int Punto)
             {
-                return -1; // Está abajo del eje X
+                GenerarPuntos();
+                int contador = 0;
+
+                for (int i = 1; i < puntos.Length; i++)
+                {
+                    if (puntos[i - 1].Y * puntos[i].Y < 0)
+                    {
+                        contador++;
+                        if (contador == Punto)
+                            return (puntos[i - 1].X + puntos[i].X) / 2.0;
+                    }
+                }
+                return double.NaN;
             }
-            else
+
+            public override double MaximoValorY()
             {
-                return 0;
+                GenerarPuntos();
+                return puntos.Max(p => p.Y);
+            }
+
+            public override double MinimoValorY()
+            {
+                GenerarPuntos();
+                return puntos.Min(p => p.Y);
+            }
+
+            public int CasosCalcularArea(double Xini, double Xfin)
+            {
+                int numPuntos = 10000;
+                double pasoInterno = (Xfin - Xini) / numPuntos;
+                bool hayPositivos = false, hayNegativos = false;
+
+                for (double x = Xini; x <= Xfin; x += pasoInterno)
+                {
+                    double y = CalcularY(x);
+                    if (y > 0) hayPositivos = true;
+                    if (y < 0) hayNegativos = true;
+
+                    if (hayPositivos && hayNegativos)
+                        return 0;
+                }
+
+                return hayPositivos ? 1 : -1;
             }
         }
     }
-}

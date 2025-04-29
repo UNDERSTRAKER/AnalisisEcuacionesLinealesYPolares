@@ -23,6 +23,8 @@
             objPolinomio1.Coeficientes(0.1, 0.6, -0.9, -6, 0, 4, 1);
             objPolinomio1.Rango(Xminimo1, Xmaximo1);
             objPolinomio1.setPaso(0.1);
+            objPolinomio1.GenerarPuntos();
+
 
             Console.WriteLine("Polinomio Grado 6");
             Console.WriteLine("Total de puntos de corte: " + objPolinomio1.TotalPuntosCorte());
@@ -68,6 +70,7 @@
             objPolinomio2.Coeficientes(0, 0, 1, -2, -5, 6, 0);
             objPolinomio2.Rango(Xminimo2, Xmaximo2);
             objPolinomio2.setPaso(0.05);
+            objPolinomio2.GenerarPuntos();
 
             Console.WriteLine("Polinomio Grado 4 (los coeficientes A y B son cero)");
             Console.WriteLine("Total de puntos de corte: " + objPolinomio2.TotalPuntosCorte());
@@ -113,6 +116,7 @@
 
             objPolar1.Rango(ThetaMinimo1, ThetaMaximo1);
             objPolar1.setPaso(1);
+            objPolar1.GenerarPuntos();
 
             Console.WriteLine("Ecuación polar: r = 3 * sin(1.4 * θ * π/180)");
             Console.WriteLine("Total de puntos de corte: " + objPolar1.TotalPuntosCorte());
@@ -140,6 +144,7 @@
 
             objPolar2.Rango(ThetaMinimo2, ThetaMaximo2);
             objPolar2.setPaso(0.5);
+            objPolar2.GenerarPuntos();
 
             Console.WriteLine("Ecuación polar: r = 2 * sin(2 * θ * π/180)");
             Console.WriteLine("Total de puntos de corte: " + objPolar2.TotalPuntosCorte());
